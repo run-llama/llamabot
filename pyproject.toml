@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "openaiagent"
+version = "0.1.0"
+description = ""
+authors = ["Laurie Voss <github@seldo.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+llama-index = "^0.9.19"
+python-dotenv = "^1.0.0"
+slack-bolt = "^1.18.1"
+flask = "^3.0.0"
+qdrant-client = "^1.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
