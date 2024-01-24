@@ -93,7 +93,7 @@ You now need to tell Slack where your app is so you can receive messages from it
 
 If your app is running and ngrok is correctly tunneling, your Request URL should be Verified.
 
-Phew! Your Slack app is now registered and Slack will send it messages. But to get those messages, you have to tell it to join a channel.
+Phew! That was a lot. Your Slack app is now registered and Slack will send it messages. But to get those messages, you have to tell it to join a channel.
 
 ## Step 2: Join a channel, and reply to messages
 
@@ -138,7 +138,7 @@ app.client.conversations_join(channel=channel_id)
 print(f"Found the channel {channel_id} and joined it")
 ```
 
-`app.client` is the Bolt framework Slack WebClient, so you can do anything a WebClient can do directly from within the framework. The final addition here is a very simple message listener:
+`app.client` is the Bolt framework's Slack WebClient, so you can do anything a WebClient can do directly from within the framework. The final addition here is a very simple message listener:
 
 ```python
 @app.message()
@@ -193,7 +193,7 @@ Oof. That took a while to get right! But now our bot only replies when it's ment
 
 ## Step 4: use LlamaIndex to store facts and answer questions
 
-We're all the way at step 4 and we still haven't done anything with LlamaIndex! But now's the time. In `4_incremental_rag.py` you'll see a demonstration of a simple command-line Python script that uses LlamaIndex to store facts and answer questions. I won't walk you through every line (the script has helpful comments for that), but let's look at the important ones.
+We're all the way at step 4 and we still haven't done anything with LlamaIndex! But now's the time. In `4_incremental_rag.py` you'll see a demonstration of a simple command-line Python script that uses LlamaIndex to store facts and answer questions. I won't walk you through every line (the script has helpful comments for that), but let's look at the important ones. Remember to `pip install llama-index`!
 
 First we create a new `VectorStoreIndex`, an in-memory [vector store](https://docs.llamaindex.ai/en/stable/understanding/indexing/indexing.html#vector-store-index) where we'll be storing our facts. It's empty to start with.
 
@@ -230,7 +230,7 @@ The result is "Molly is a cat" plus a whole lot of debugging info because we tur
 
 In `5_rag_in_slack.py` we are combining the two things we had before: script 3, where we reply to queries, and script 4, where we store facts and answer questions. Once again we won't walk through every line, but here are the important changes:
 
-First `pip install llama-index` and bring in your deps. Initialize your index while you're at it:
+First `pip install llama-index` if you didn't already, and bring in your deps. Initialize your index while you're at it:
 
 ```python
 from llama_index import VectorStoreIndex, Document
@@ -265,7 +265,7 @@ Our bot has a critical flaw though: the index is stored only in memory. If we re
 
 ![Restart](docs/2_6_1_problem.png)
 
-In `6_qdrant.py` we bring in Qdrant, an open-source, local vector database that stores these facts on disk instead. That way if we restart our bot it remembers what was said before. `pip install qdrant-client` and bring in some new deps:
+In `6_qdrant.py` we bring in [Qdrant](https://qdrant.tech/), an open-source, local vector database that stores these facts on disk instead. That way if we restart our bot it remembers what was said before. `pip install qdrant-client` and bring in some new deps:
 
 ```python
 import qdrant_client
@@ -306,7 +306,7 @@ from llama_index.postprocessor import FixedRecencyPostprocessor
 from llama_index import set_global_handler
 ```
 
-To make recent messages more important, we have to know when a message was sent. To do that we are going to stop inserting `Documents` into the index and instead insert `Nodes`, to which we're going to attach the timestamp as metadata (under the hood, our Documents were always being converted into Nodes anyway so this doesn't change much)
+To make recent messages more important, we have to know when a message was sent. To do that we are going to stop inserting `Documents` into the index and instead insert `Nodes`, to which we're going to attach the timestamp as metadata (under the hood, our Documents were always being converted into Nodes anyway so this doesn't change much):
 
 ```python
 dt_object = datetime.datetime.fromtimestamp(float(message.get('ts')))
@@ -326,7 +326,7 @@ node = TextNode(
 index.insert_nodes([node])
 ```
 
-I've also factored out the reply logic from message handling into its own function, `answer_question`, just to make things a little easier to read. The first thing we're going to change is the prompt that we give to our LLM: we have to tell it that more recent messages are important. To do this we create a prompt template, 
+I've also factored out the reply logic from message handling into its own function, `answer_question`, just to make things a little easier to read. The first thing we're going to change is the prompt that we give to our LLM: we have to tell it that more recent messages are important. To do this we create a prompt template: 
 
 ```python
 template = (
@@ -388,7 +388,7 @@ The code to make both of those happen is in `8_rest_of_the_owl.py` but I'm not g
 
 ## Step 9: deploy to Render
 
-Until now we've been working with local scripts running through the ngrok tunnel, but even the most dedicated coders turns their laptop off sometimes. Let's put this thing on a real server.
+Until now we've been working with local scripts running through the ngrok tunnel, but even the most dedicated coder turns their laptop off sometimes. Let's put this thing on a real server.
 
 ### Login to Render
 
@@ -408,12 +408,12 @@ In Render, create a new web service. Connect it to the repo on GitHub you just c
 
 ![Create a new web service](docs/3_1_web_service.png)
 
-Render will probably automatically detect that this is a Python app but you should make sure the following setting are correct:
+Render will probably automatically detect that this is a Python app but you should make sure the following settings are correct:
 
 * Name: any name you choose
 * Region: any region is fine
 * Branch: main
-* Root directory: blank
+* Root directory: (blank, meaning root)
 * Runtime: Python 3
 * Build command: `poetry install`
 * Start command: `gunicorn app:flask_app` (this will definitely need to be set)
