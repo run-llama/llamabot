@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "openaiagent"
+name = "llamaindex-slackbot"
 version = "0.1.0"
 description = ""
 authors = ["Laurie Voss <github@seldo.com>"]
@@ -12,6 +12,7 @@ python-dotenv = "^1.0.0"
 slack-bolt = "^1.18.1"
 flask = "^3.0.0"
 qdrant-client = "^1.7.0"
+gunicorn = "^21.2.0"
 
 
 [build-system]
