@@ -1,37 +1,41 @@
+# read .env files
 import dotenv, os
 dotenv.load_dotenv()
 
+# Bring in deps including Slack Bolt framework
 from slack_bolt import App
 from slack_sdk import WebClient
 from flask import Flask, request, jsonify
 from slack_bolt.adapter.flask import SlackRequestHandler
 
+# bring in llamaindex deps and initialize index
 from llama_index import VectorStoreIndex, Document
 
 index = VectorStoreIndex([])
 
-# Initialize your app with your bot token and signing secret
+# Initialize Bolt app with token and secret
 app = App(
     token=os.environ.get("SLACK_BOT_TOKEN"),
     signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
 )
 handler = SlackRequestHandler(app)
+
+# start flask app
 flask_app = Flask(__name__)
 
-# join the test channel so you can listen to messages
+# join the #bot-testing channel so we can listen to messages
 channel_list = app.client.conversations_list().data
 channel = next((channel for channel in channel_list.get('channels') if channel.get("name") == "bot-testing"), None)
 channel_id = channel.get('id')
 app.client.conversations_join(channel=channel_id)
+print(f"Found the channel {channel_id} and joined it")
 
-# get my own ID
+# get the bot's own user ID so it can tell when somebody is mentioning it
 auth_response = app.client.auth_test()
-print(auth_response)
 bot_user_id = auth_response["user_id"]
 
 # this is the challenge route required by Slack
 # if it's not the challenge it's something for Bolt to handle
-# (why doesn't Bolt handle the challenge? It's their framework, they should know the challenge is coming...)
 @flask_app.route("/", methods=["POST"])
 def slack_challenge():
     if request.json and "challenge" in request.json:
@@ -43,9 +47,11 @@ def slack_challenge():
     return handler.handle(request)
 
 # this handles any incoming message the bot can hear
-# right now it's only in one channel so it's every message in that channel
+# we want it to only respond when somebody messages it directly
+# otherwise it listens and stores every message as future context
 @app.message()
 def reply(message, say):
+    # the slack message object is a complicated nested object
     # if message contains a "blocks" key
     #   then look for a "block" with the type "rich text"
     #       if you find it 
@@ -56,7 +62,7 @@ def reply(message, say):
     #                   then look inside each "element" for one with type "user"
     #                   if you find it  
     #                   and if that user matches the bot_user_id 
-    #                   then it's a message from the bot
+    #                       then it's a message for the bot
     if message.get('blocks'):
         for block in message.get('blocks'):
             if block.get('type') == 'rich_text':
@@ -66,10 +72,12 @@ def reply(message, say):
                             for element in rich_text_section.get('elements'):
                                 if element.get('type') == 'text':
                                     query = element.get('text')
-                                    print("Using query", query)
+                                    print(f"Somebody asked the bot: {query}")
                                     query_engine = index.as_query_engine()
                                     response = query_engine.query(query)
-                                    print(response)
+                                    print("Context was:")
+                                    print(response.source_nodes)
+                                    print(f"Response was: {response}")
                                     say(str(response))
                                     return
     # otherwise treat it as a document to store
