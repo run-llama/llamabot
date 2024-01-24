@@ -25,7 +25,7 @@ set_global_handler("simple")
 client = qdrant_client.QdrantClient(
     path="./qdrant_data"
 )
-vector_store = QdrantVectorStore(client=client, collection_name="tweets")
+vector_store = QdrantVectorStore(client=client, collection_name="slack_messages")
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 index = VectorStoreIndex([],storage_context=storage_context)

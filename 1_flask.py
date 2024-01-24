@@ -1,7 +1,3 @@
-# read .env files
-import dotenv, os
-dotenv.load_dotenv()
-
 # start a flask app
 from flask import Flask, request, jsonify
 

@@ -4,7 +4,6 @@ dotenv.load_dotenv()
 
 # Bring in deps including Slack Bolt framework
 from slack_bolt import App
-from slack_sdk import WebClient
 from flask import Flask, request, jsonify
 from slack_bolt.adapter.flask import SlackRequestHandler
 

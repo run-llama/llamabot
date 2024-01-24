@@ -9,14 +9,14 @@ from slack_bolt.adapter.flask import SlackRequestHandler
 
 # bring in llamaindex deps
 import qdrant_client
-from llama_index import VectorStoreIndex, Document, StorageContext, ServiceContext 
+from llama_index import VectorStoreIndex, Document, StorageContext
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 
 # initialize qdrant client and a vector store that uses it
 client = qdrant_client.QdrantClient(
     path="./qdrant_data"
 )
-vector_store = QdrantVectorStore(client=client, collection_name="tweets")
+vector_store = QdrantVectorStore(client=client, collection_name="slack_messages")
 storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 index = VectorStoreIndex([],storage_context=storage_context)
